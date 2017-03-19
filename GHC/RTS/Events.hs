@@ -836,7 +836,7 @@ sortEvents = sortGroups . groupEvents
 -- | Sort the raw event stream by time, annotating each event with the
 -- capability that generated it.
 sortGroups :: [(Maybe Int, [Event])] -> [CapEvent]
-sortGroups groups = mergesort' (compare `on` (time . ce_event)) $
+sortGroups groups = mergeAll (compare `on` (time . ce_event)) $
                       [ [ CapEvent cap e | e <- es ]
                       | (cap, es) <- groups ]
      -- sorting is made much faster by the way that the event stream is
@@ -869,12 +869,12 @@ groupEvents es = (Nothing, n_events) :
      -- with cap == -1.  We have to merge those two streams.
      -- In light of merged logs, global blocks may have overlapping
      -- time spans, thus the blocks are mergesorted
-   n_events = mergesort' (compare `on` time) (anon_events : map block_events gbl_blocks)
+   n_events = merge (compare `on` time) anon_events $ mergeAll (compare`on`time) $ map block_events gbl_blocks
 
-mergesort' :: (a -> a -> Ordering) -> [[a]] -> [a]
-mergesort' _   [] = []
-mergesort' _   [xs] = xs
-mergesort' cmp xss = mergesort' cmp (merge_pairs cmp xss)
+mergeAll :: (a -> a -> Ordering) -> [[a]] -> [a]
+mergeAll _   [] = []
+mergeAll _   [xs] = xs
+mergeAll cmp xss = mergeAll cmp (merge_pairs cmp xss)
 
 merge_pairs :: (a -> a -> Ordering) -> [[a]] -> [[a]]
 merge_pairs _   [] = []
