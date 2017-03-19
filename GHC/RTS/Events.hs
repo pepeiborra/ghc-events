@@ -829,6 +829,7 @@ readEventLogFromFile f = do
 
 -- -----------------------------------------------------------------------------
 -- Utilities
+cons !x !xs = x : xs
 
 sortEvents :: [Event] -> [CapEvent]
 sortEvents = sortGroups . groupEvents
@@ -879,15 +880,15 @@ mergeAll cmp xss = mergeAll cmp (merge_pairs cmp xss)
 merge_pairs :: (a -> a -> Ordering) -> [[a]] -> [[a]]
 merge_pairs _   [] = []
 merge_pairs _   [xs] = [xs]
-merge_pairs cmp (xs:ys:xss) = merge cmp xs ys : merge_pairs cmp xss
+merge_pairs cmp (xs:ys:xss) = merge cmp xs ys `cons` merge_pairs cmp xss
 
 merge :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 merge _   [] ys = ys
 merge _   xs [] = xs
 merge cmp (x:xs) (y:ys)
  = case x `cmp` y of
-        GT -> y : merge cmp (x:xs)   ys
-        _  -> x : merge cmp    xs (y:ys)
+        GT -> y `cons` merge cmp (x:xs)   ys
+        _  -> x `cons` merge cmp    xs (y:ys)
 
 
 buildEventTypeMap :: [EventType] -> IntMap EventType
