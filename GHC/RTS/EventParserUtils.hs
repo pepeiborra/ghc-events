@@ -11,7 +11,6 @@ module GHC.RTS.EventParserUtils (
         getE,
         getH,
         getString,
-        getStringInterned,
         liftGet,
         mkEventTypeParsers,
         simpleEvent,
@@ -66,9 +65,7 @@ nBytes :: Integral a => a -> GetEvents [Word8]
 nBytes n = replicateM (fromIntegral n) getE
 
 getString :: Integral a => a -> GetEvents String
-getString len = do
-    bytes <- nBytes len
-    return $ map (chr . fromIntegral) bytes
+getString = getStringInterned
 
 getStringInterned :: Integral a => a -> GetEvents String
 getStringInterned len = do
