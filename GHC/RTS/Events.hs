@@ -52,6 +52,7 @@ import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
 import Control.Monad.Reader
 import Control.Monad.Except
+import Control.Monad.State (evalStateT)
 import qualified Data.ByteString.Lazy as L
 import Data.Function
 import Data.List
@@ -138,10 +139,10 @@ standardParsers = [
       block_size <- getE :: GetEvents BlockSize
       end_time <- getE :: GetEvents Timestamp
       c <- getE :: GetEvents CapNo
-      lbs <- lift . lift $ getLazyByteString ((fromIntegral block_size) -
+      lbs <- liftGet $ getLazyByteString ((fromIntegral block_size) -
                                               (fromIntegral sz_block_event))
       eparsers <- ask
-      let e_events = runGet (runExceptT $ runReaderT (getEventBlock eparsers) eparsers) lbs
+      let e_events = runGet (runExceptT $ flip runReaderT eparsers $ flip evalStateT mempty $ getEventBlock eparsers) lbs
       return EventBlock{ end_time=end_time,
                          cap= fromIntegral c,
                          block_events=case e_events of
@@ -275,12 +276,12 @@ standardParsers = [
 
  (VariableSizeParser EVENT_LOG_MSG (do -- (msg)
       num <- getE :: GetEvents Word16
-      string <- getString num
+      string <- getString num >>= internString
       return Message{ msg = string }
    )),
  (VariableSizeParser EVENT_USER_MSG (do -- (msg)
       num <- getE :: GetEvents Word16
-      string <- getString num
+      string <- getString num >>= internString
       return UserMessage{ msg = string }
    )),
     (VariableSizeParser EVENT_USER_MARKER (do -- (markername)
@@ -765,7 +766,7 @@ getData = do
 
 getEventBlock :: EventParsers -> GetEvents [Event]
 getEventBlock parsers = do
-  b <- lift . lift $ isEmpty
+  b <- liftGet isEmpty
   if b then return [] else do
   mb_e <- getEvent parsers
   case mb_e of
@@ -814,7 +815,9 @@ getEventLog = do
                                 stopParsers ++ parRTSParsers sz_tid ++
                                 mercuryParsers ++ perfParsers
         parsers = mkEventTypeParsers imap event_parsers
-    dat <- runReaderT getData (EventParsers parsers)
+    dat <- flip runReaderT (EventParsers parsers)
+           $ flip evalStateT mempty
+           $ getData
     return (EventLog header dat)
 
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
