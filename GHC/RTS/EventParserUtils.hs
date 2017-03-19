@@ -11,7 +11,7 @@ module GHC.RTS.EventParserUtils (
         getE,
         getH,
         getString,
-        internString,
+        getStringInterned,
         liftGet,
         mkEventTypeParsers,
         simpleEvent,
@@ -28,6 +28,8 @@ import Data.Binary
 import Data.Binary.Get hiding (skip)
 import qualified Data.Binary.Get as G
 import Data.Binary.Put
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B
 import Data.Char
 import Data.Function
 import Data.IntMap (IntMap)
@@ -42,7 +44,7 @@ import Data.List
 import GHC.RTS.EventTypes
 
 -- A memo table for interning strings
-type MemoTable = HashMap String String
+type MemoTable = HashMap ByteString String
 
 -- reader/Get monad that passes around the event types
 type GetEvents a = StateT MemoTable (ReaderT EventParsers (ExceptT String Get)) a
@@ -68,14 +70,16 @@ getString len = do
     bytes <- nBytes len
     return $ map (chr . fromIntegral) bytes
 
-internString :: String -> GetEvents String
-internString s = do
-    memoTable <- S.get
-    case HM.lookup s memoTable of
-      Just s' -> return s'
-      Nothing -> do
-        S.modify (HM.insert s s)
-        return s
+getStringInterned :: Integral a => a -> GetEvents String
+getStringInterned len = do
+  bytes <- liftGet $ getByteString (fromIntegral len)
+  memoTable <- S.get
+  case HM.lookup bytes memoTable of
+    Just s -> return s
+    Nothing -> do
+      let s = B.unpack bytes
+      S.modify $ HM.insert bytes s
+      return s
 
 skip :: Integral a => a -> GetEvents ()
 skip n = liftGet $ G.skip (fromIntegral n)

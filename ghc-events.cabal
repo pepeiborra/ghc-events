@@ -51,7 +51,7 @@ library
 
 executable ghc-events
   main-is:          GhcEvents.hs
-  build-depends:    array, base, binary, bytestring, containers, mtl, unordered-containers
+  build-depends:    array, base, binary, bytestring, bytestring, containers, mtl, unordered-containers
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
