@@ -866,7 +866,7 @@ groupEvents es = (Nothing, n_events) :
      -- with cap == -1.  We have to merge those two streams.
      -- In light of merged logs, global blocks may have overlapping
      -- time spans, thus the blocks are mergesorted
-   n_events = mergesort' (compare `on` time) (anon_events : map block_events gbl_blocks)
+   n_events = merge (compare`on`time) anon_events $ mergesort' (compare`on`time) (map block_events gbl_blocks)
 
 mergesort' :: (a -> a -> Ordering) -> [[a]] -> [a]
 mergesort' _   [] = []
