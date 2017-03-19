@@ -161,7 +161,7 @@ data EventInfo
                          otherCap :: {-# UNPACK #-}!Int
                        }
   | ThreadLabel        { thread :: {-# UNPACK #-}!ThreadId,
-                         threadlabel :: String
+                         threadlabel :: !String
                        }
 
   -- par sparks
@@ -251,7 +251,7 @@ data EventInfo
 
   -- program/process info
   | RtsIdentifier      { capset :: {-# UNPACK #-}!Capset
-                       , rtsident :: String
+                       , rtsident :: !String
                        }
   | ProgramArgs        { capset :: {-# UNPACK #-}!Capset
                        , args   :: [String]
@@ -271,14 +271,14 @@ data EventInfo
                        }
 
   -- messages
-  | Message            { msg :: String }
-  | UserMessage        { msg :: String }
-  | UserMarker         { markername :: String }
+  | Message            { msg :: !String }
+  | UserMessage        { msg :: !String }
+  | UserMarker         { markername :: !String }
 
   -- Events emitted by a parallel RTS
    -- Program /process info (tools might prefer newer variants above)
-  | Version            { version :: String }
-  | ProgramInvocation  { commandline :: String }
+  | Version            { version :: !String }
+  | ProgramInvocation  { commandline :: !String }
    -- startup and shutdown (incl. real start time, not first log entry)
   | CreateMachine      { machine :: {-# UNPACK #-} !MachineId,
                          realtime    :: {-# UNPACK #-} !Timestamp}
@@ -316,7 +316,7 @@ data EventInfo
 
   -- These events have been added for Mercury's benifit but are generally
   -- useful.
-  | InternString       { str :: String, sId :: {-# UNPACK #-}!StringId }
+  | InternString       { str :: !String, sId :: {-# UNPACK #-}!StringId }
 
   -- Mercury specific events.
   | MerStartParConjunction {
@@ -357,7 +357,7 @@ data EventInfo
 
   -- perf events
   | PerfName           { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
-                       , name    :: String
+                       , name    :: !String
                        }
   | PerfCounter        { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
                        , tid     :: {-# UNPACK #-}!KernelThreadId
