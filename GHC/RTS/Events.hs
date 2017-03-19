@@ -276,7 +276,7 @@ standardParsers = [
 
  (VariableSizeParser EVENT_LOG_MSG (do -- (msg)
       num <- getE :: GetEvents Word16
-      string <- getStringInterned num
+      string <- getString num
       return Message{ msg = string }
    )),
  (VariableSizeParser EVENT_USER_MSG (do -- (msg)
@@ -286,7 +286,7 @@ standardParsers = [
    )),
     (VariableSizeParser EVENT_USER_MARKER (do -- (markername)
       num <- getE :: GetEvents Word16
-      string <- getString num
+      string <- getStringInterned num
       return UserMarker{ markername = string }
    )),
  (VariableSizeParser EVENT_PROGRAM_ARGS (do -- (capset, [arg])
